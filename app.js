@@ -316,11 +316,14 @@ function renderInventory() {
 
     tr.innerHTML = `
       <td>
-        <input
-          type="text"
-          value="${escapeHtml(row.project_name || "")}"
-          onchange="updateField(${row.id}, 'project_name', this.value)"
-        />
+        <button
+          type="button"
+          class="project-button"
+          onclick="openItemCardById(${row.id})"
+          title="Open item card"
+        >
+          ${escapeHtml(row.project_name || "Open Item Card")}
+        </button>
       </td>
 
       <td>
