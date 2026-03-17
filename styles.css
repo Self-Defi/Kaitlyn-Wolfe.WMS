@@ -488,6 +488,16 @@ textarea:focus {
   color: #4e3523;
 }
 
+.badge.inspection {
+  background: #5f4634;
+  color: #ffffff;
+}
+
+.badge.racked {
+  background: #b7c9b2;
+  color: #223320;
+}
+
 .badge.hold {
   background: #ccb29d;
   color: #3f281b;
@@ -495,11 +505,6 @@ textarea:focus {
 
 .badge.delivered {
   background: #8f6a4f;
-  color: #ffffff;
-}
-
-.badge.inspection {
-  background: #5f4634;
   color: #ffffff;
 }
 
