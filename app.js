@@ -1,4 +1,5 @@
 const STATUS_OPTIONS = ["received", "hold", "delivered", "inspection"];
+const STORAGE_BUCKET = "item-images";
 
 let inventory = [];
 let racks = [];
@@ -143,6 +144,26 @@ function findItemById(id) {
   return inventory.find((row) => row.id === id) || null;
 }
 
+function renderItemImage(row) {
+  const imageEl = document.getElementById("detailImage");
+  const placeholderEl = document.getElementById("imagePlaceholder");
+  const replaceBtn = document.getElementById("replaceImageBtn");
+
+  if (!imageEl || !placeholderEl || !replaceBtn) return;
+
+  if (row?.image_url) {
+    imageEl.src = row.image_url;
+    imageEl.classList.remove("hidden");
+    placeholderEl.classList.add("hidden");
+    replaceBtn.classList.remove("hidden");
+  } else {
+    imageEl.src = "";
+    imageEl.classList.add("hidden");
+    placeholderEl.classList.remove("hidden");
+    replaceBtn.classList.add("hidden");
+  }
+}
+
 function showItemCard(row) {
   const section = document.getElementById("itemCardSection");
   if (!section || !row) return;
@@ -161,6 +182,7 @@ function showItemCard(row) {
   badge.className = `badge ${row.status || "received"}`;
   badge.textContent = getStatusLabel(row.status || "received");
 
+  renderItemImage(row);
   section.classList.remove("hidden");
 }
 
@@ -393,7 +415,8 @@ async function addRow() {
     project_name: "",
     status: "received",
     rack_code: null,
-    notes: ""
+    notes: "",
+    image_url: null
   };
 
   try {
@@ -428,6 +451,62 @@ async function updateField(itemId, field, value) {
   } catch (error) {
     console.error(error);
     showMessage(`Update failed: ${error.message}`, "error");
+  }
+}
+
+async function uploadItemImage(file) {
+  if (!currentItemId) {
+    showMessage("Open an item card first.", "error");
+    return;
+  }
+
+  const currentItem = findItemById(currentItemId);
+  if (!currentItem) {
+    showMessage("Item not found.", "error");
+    return;
+  }
+
+  if (!file) return;
+
+  const fileExt = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const safeCode = String(currentItem.item_code || `item-${currentItem.id}`).replace(/[^a-zA-Z0-9-_]/g, "_");
+  const filePath = `${safeCode}/${Date.now()}.${fileExt}`;
+
+  try {
+    showMessage("Uploading image...", "success");
+
+    const { error: uploadError } = await db.storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicData } = db.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filePath);
+
+    const imageUrl = publicData?.publicUrl || null;
+    if (!imageUrl) throw new Error("Could not generate image URL.");
+
+    const { error: updateError } = await db
+      .from("items")
+      .update({ image_url: imageUrl })
+      .eq("id", currentItemId);
+
+    if (updateError) throw updateError;
+
+    await refreshData();
+
+    const latest = findItemById(currentItemId);
+    if (latest) showItemCard(latest);
+
+    showMessage("Image uploaded successfully.", "success");
+  } catch (error) {
+    console.error(error);
+    showMessage(`Image upload failed: ${error.message}`, "error");
   }
 }
 
@@ -479,6 +558,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const searchValueEl = document.getElementById("searchValue");
   const closeRackModalBtn = document.getElementById("closeRackModalBtn");
   const rackModalBackdrop = document.getElementById("rackModalBackdrop");
+  const uploadImageBtn = document.getElementById("uploadImageBtn");
+  const replaceImageBtn = document.getElementById("replaceImageBtn");
+  const detailImageInput = document.getElementById("detailImageInput");
 
   applyLookupFromUrl();
   updateSearchPlaceholder();
@@ -486,6 +568,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (addRowBtn) addRowBtn.addEventListener("click", addRow);
   if (refreshBtn) refreshBtn.addEventListener("click", () => refreshData(true));
   if (closeItemCardBtn) closeItemCardBtn.addEventListener("click", hideItemCard);
+
+  if (uploadImageBtn && detailImageInput) {
+    uploadImageBtn.addEventListener("click", () => detailImageInput.click());
+  }
+
+  if (replaceImageBtn && detailImageInput) {
+    replaceImageBtn.addEventListener("click", () => detailImageInput.click());
+  }
+
+  if (detailImageInput) {
+    detailImageInput.addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        await uploadItemImage(file);
+      }
+      event.target.value = "";
+    });
+  }
 
   if (searchTypeEl) {
     searchTypeEl.addEventListener("change", (event) => {
