@@ -22,7 +22,7 @@
         <div class="status-panel">
           <div class="status-line">
             <span class="status-label">Backend</span>
-            <span id="connectionBadge" class="pill neutral">Checking…</span>
+            <span id="connectionBadge" class="pill neutral">Checking...</span>
           </div>
           <div class="status-line">
             <span class="status-label">Records</span>
@@ -112,6 +112,11 @@
             </div>
 
             <div class="detail-box">
+              <label>Quantity</label>
+              <div id="detailQuantity"></div>
+            </div>
+
+            <div class="detail-box">
               <label>Rack Code</label>
               <div id="detailRackCode"></div>
             </div>
@@ -143,6 +148,7 @@
               <th>Project</th>
               <th>Item Code</th>
               <th>Item Name</th>
+              <th>Quantity</th>
               <th>Status</th>
               <th>Rack Code</th>
               <th>Notes</th>
@@ -185,6 +191,7 @@
                 <th>Item Code</th>
                 <th>Item Name</th>
                 <th>Project</th>
+                <th>Qty</th>
                 <th>Status</th>
                 <th>Rack Code</th>
               </tr>
@@ -197,7 +204,7 @@
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./supabase-config.js?v=11"></script>
-<script src="./app.js?v=11"></script>
+  <script src="./supabase-config.js?v=12"></script>
+  <script src="./app.js?v=12"></script>
 </body>
 </html>
