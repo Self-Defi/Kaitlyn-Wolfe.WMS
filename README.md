@@ -3,6 +3,10 @@
 **Custom-built warehouse inventory and rack visibility system**  
 Developed by **SD Advisory Group — Powered by Self-Defi**
 
+> ⚙️ Built for real-world warehouse operations  
+> 🚀 Available for deployment & customization  
+> 📞 https://cal.com/selfdeficonsultant/15min
+
 ---
 
 ## 🚀 Overview
@@ -57,11 +61,11 @@ Example:
 
 ### 1. Clone Repo
 ```bash
-git clone https://github.com/YOUR-ORG/Kaitlyn-Wolfe.WMS.git
+git clone https://github.com/Self-Defi/Kaitlyn-Wolfe.WMS.git
 
 ## 🛡️ Legal & Philosophy
 
 - [Philosophy](PHILOSOPHY.md)
 - [Notice](NOTICE.md)
 - [Terms](TERMS.md)
-- [License](LICENSE)
+- [License](LICENSE.md)
