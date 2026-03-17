@@ -1,4 +1,3 @@
-const db = window.db;
 const STATUS_OPTIONS = ["received", "inspection", "racked", "hold", "delivered"];
 const STORAGE_BUCKET = "item-images";
 
@@ -7,6 +6,13 @@ let racks = [];
 let searchType = "rack_code";
 let searchValue = "";
 let currentItemId = null;
+
+function getDb() {
+  if (!window.db) {
+    throw new Error("Supabase connection not available.");
+  }
+  return window.db;
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -102,7 +108,7 @@ function updateSearchPlaceholder() {
 }
 
 async function fetchRacks() {
-  const { data, error } = await db
+  const { data, error } = await getDb()
     .from("racks")
     .select("rack_code, series, level_code, side_code")
     .order("rack_code", { ascending: true });
@@ -112,7 +118,7 @@ async function fetchRacks() {
 }
 
 async function fetchItems() {
-  const { data, error } = await db
+  const { data, error } = await getDb()
     .from("items")
     .select("*")
     .order("created_at", { ascending: false });
@@ -132,6 +138,7 @@ function getFilteredInventory() {
         row.project_name,
         row.item_code,
         row.item_name,
+        row.quantity,
         row.status,
         row.rack_code,
         row.notes
@@ -178,6 +185,7 @@ function showItemCard(row) {
   document.getElementById("detailItemName").textContent = row.item_name || "Unnamed Item";
   document.getElementById("detailItemCode").textContent = row.item_code || "";
   document.getElementById("detailProject").textContent = row.project_name || "";
+  document.getElementById("detailQuantity").textContent = String(row.quantity ?? 1);
   document.getElementById("detailRackCode").textContent = row.rack_code || "";
   document.getElementById("detailStatus").textContent = getStatusLabel(row.status || "received");
   document.getElementById("detailNotes").textContent = row.notes || "";
@@ -229,10 +237,12 @@ function openRackModal(rackCode) {
   const receivedCount = rackItems.filter((item) => item.status === "received").length;
   const rackedCount = rackItems.filter((item) => item.status === "racked").length;
   const deliveredCount = rackItems.filter((item) => item.status === "delivered").length;
+  const totalQty = rackItems.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
   [
     `Rack: ${rackCode}`,
     `Records: ${rackItems.length}`,
+    `Total Qty: ${totalQty}`,
     `Received: ${receivedCount}`,
     `Racked: ${rackedCount}`,
     `Delivered: ${deliveredCount}`
@@ -245,7 +255,7 @@ function openRackModal(rackCode) {
 
   if (!rackItems.length) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="5">No items currently assigned to this rack.</td>`;
+    tr.innerHTML = `<td colspan="6">No items currently assigned to this rack.</td>`;
     body.appendChild(tr);
   } else {
     rackItems.forEach((row) => {
@@ -258,6 +268,7 @@ function openRackModal(rackCode) {
         </td>
         <td>${escapeHtml(row.item_name || "")}</td>
         <td>${escapeHtml(row.project_name || "")}</td>
+        <td>${escapeHtml(String(row.quantity ?? 1))}</td>
         <td>${getStatusBadge(row.status || "received")}</td>
         <td>${escapeHtml(row.rack_code || "")}</td>
       `;
@@ -335,7 +346,7 @@ function renderInventory() {
   if (!filteredInventory.length) {
     const emptyRow = document.createElement("tr");
     emptyRow.className = "empty-message";
-    emptyRow.innerHTML = `<td colspan="9">No items match that search.</td>`;
+    emptyRow.innerHTML = `<td colspan="10">No items match that search.</td>`;
     table.appendChild(emptyRow);
     return;
   }
@@ -378,6 +389,17 @@ function renderInventory() {
       </td>
 
       <td>
+        <input
+          class="qty-input"
+          type="number"
+          min="1"
+          step="1"
+          value="${Number(row.quantity) || 1}"
+          onchange="updateField(${row.id}, 'quantity', this.value)"
+        />
+      </td>
+
+      <td>
         ${createStatusSelect(row.status || "received", row.id)}
         ${getStatusBadge(row.status || "received")}
       </td>
@@ -404,13 +426,19 @@ function renderInventory() {
 
 async function refreshData(showToast = false) {
   try {
-    setConnectionState("neutral", "Loading…");
+    setConnectionState("neutral", "Checking...");
+    showMessage("");
+
     await Promise.all([fetchRacks(), fetchItems()]);
+
     setConnectionState("success", "Connected");
     renderInventory();
-    if (showToast) showMessage("Inventory refreshed from backend.", "success");
+
+    if (showToast) {
+      showMessage("Inventory refreshed from backend.", "success");
+    }
   } catch (error) {
-    console.error(error);
+    console.error("refreshData error:", error);
     setConnectionState("error", "Error");
     showMessage(`Backend error: ${error.message}`, "error");
   }
@@ -420,6 +448,7 @@ async function addRow() {
   const payload = {
     item_name: "New Item",
     project_name: "",
+    quantity: 1,
     status: "received",
     rack_code: null,
     notes: "",
@@ -427,7 +456,7 @@ async function addRow() {
   };
 
   try {
-    const { error } = await db.from("items").insert(payload);
+    const { error } = await getDb().from("items").insert(payload);
     if (error) throw error;
 
     showMessage("New warehouse item created.", "success");
@@ -440,7 +469,13 @@ async function addRow() {
 
 async function updateField(itemId, field, value) {
   try {
-    const payload = { [field]: value === "" ? null : value };
+    const payload = {};
+
+    if (field === "quantity") {
+      payload[field] = Math.max(1, Number(value) || 1);
+    } else {
+      payload[field] = value === "" ? null : value;
+    }
 
     if (field === "status" && value === "delivered") {
       payload.rack_code = null;
@@ -457,7 +492,7 @@ async function updateField(itemId, field, value) {
       }
     }
 
-    const { error } = await db.from("items").update(payload).eq("id", itemId);
+    const { error } = await getDb().from("items").update(payload).eq("id", itemId);
     if (error) throw error;
 
     await refreshData();
@@ -493,7 +528,7 @@ async function uploadItemImage(file) {
   try {
     showMessage("Uploading image...", "success");
 
-    const { error: uploadError } = await db.storage
+    const { error: uploadError } = await getDb().storage
       .from(STORAGE_BUCKET)
       .upload(filePath, file, {
         cacheControl: "3600",
@@ -502,14 +537,14 @@ async function uploadItemImage(file) {
 
     if (uploadError) throw uploadError;
 
-    const { data: publicData } = db.storage
+    const { data: publicData } = getDb().storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(filePath);
 
     const imageUrl = publicData?.publicUrl || null;
     if (!imageUrl) throw new Error("Could not generate image URL.");
 
-    const { error: updateError } = await db
+    const { error: updateError } = await getDb()
       .from("items")
       .update({ image_url: imageUrl })
       .eq("id", currentItemId);
@@ -535,7 +570,7 @@ async function deleteRow(itemId) {
   if (!approved) return;
 
   try {
-    const { error } = await db.from("items").delete().eq("id", itemId);
+    const { error } = await getDb().from("items").delete().eq("id", itemId);
     if (error) throw error;
 
     hideItemCard();
@@ -579,6 +614,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const uploadImageBtn = document.getElementById("uploadImageBtn");
   const replaceImageBtn = document.getElementById("replaceImageBtn");
   const detailImageInput = document.getElementById("detailImageInput");
+
+  console.log("window.db =", window.db);
 
   applyLookupFromUrl();
   updateSearchPlaceholder();
