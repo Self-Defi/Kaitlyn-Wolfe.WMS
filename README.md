@@ -1,32 +1,30 @@
-# KW Warehouse Management System (KW-WMS)
+# Warehouse Management System (WMS)
 
-**Custom-built warehouse inventory and rack visibility system**  
-Developed by **SD Advisory Group — Powered by Self-Defi**
+**Lightweight, real-time inventory and rack visibility system**
 
 > ⚙️ Built for real-world warehouse operations  
-> 🚀 Available for deployment & customization  
-> 📞 https://cal.com/selfdeficonsultant/15min
+> 🚀 Ready for deployment and customization  
 
 ---
 
 ## 🚀 Overview
 
-KW-WMS is a lightweight, real-time warehouse management system designed to:
+This system is a lightweight, real-time warehouse management solution designed to:
 
-- Track inventory by rack location
-- Assign items to structured warehouse slots
-- Instantly retrieve rack contents via QR scan
-- Upload and manage item photos
-- Provide live backend synchronization via Supabase
+- Track inventory by rack location  
+- Assign items to structured warehouse slots  
+- Instantly retrieve rack contents via QR scan  
+- Upload and manage item photos  
+- Provide live backend synchronization via Supabase  
 
-Built for **speed, clarity, and real-world warehouse execution** — not bloated enterprise workflows.
+Built for **speed, clarity, and real-world execution** — without unnecessary enterprise complexity.
 
 ---
 
 ## ⚙️ Core Features
 
 - 📦 Live Inventory Tracking  
-- 🏷 Structured Rack System (100–308 series, 5 levels, A/B sides)  
+- 🏷 Structured Rack System (multi-series, multi-level, A/B sides)  
 - 📱 QR Scan → Instant Rack Inventory View  
 - 🧾 Clickable Item Detail Cards  
 - 📸 Image Upload (Supabase Storage)  
@@ -36,36 +34,26 @@ Built for **speed, clarity, and real-world warehouse execution** — not bloated
 ---
 
 ## 🧱 Rack Structure
-100–103 Series
-200–205 Series
-300–308 Series
 
-Each Rack:
-	•	5 Levels (01–05)
-	•	A/B sides
+The system supports a flexible structured rack format:
 
-Example:
-302-03B
+- Rack Series (e.g., 100, 200, 300)
+- Levels (e.g., 01–05)
+- Sides (A / B)
 
+### Example:
 ---
 
 ## 🧑‍💻 Tech Stack
 
-- Frontend: HTML, CSS, JavaScript (Vanilla)
-- Backend: Supabase (Postgres + Storage)
-- Hosting: GitHub Pages
+- Frontend: HTML, CSS, JavaScript (Vanilla)  
+- Backend: Supabase (Postgres + Storage)  
+- Hosting: GitHub Pages  
 
 ---
 
 ## 🔌 Setup Instructions
 
-### 1. Clone Repo
+### 1. Clone Repository
 ```bash
-git clone https://github.com/Self-Defi/Kaitlyn-Wolfe.WMS.git
-
-## 🛡️ Legal & Philosophy
-
-- [Philosophy](PHILOSOPHY.md)
-- [Notice](NOTICE.md)
-- [Terms](TERMS.md)
-- [License](LICENSE.md)
+git clone https://github.com/your-org/warehouse-management-system.git
