@@ -1,4 +1,4 @@
-const STATUS_OPTIONS = ["received", "inspection", "racked", "hold", "delivered"];
+const STATUS_OPTIONS = ["received", "inspection", "racked", "hold", "damaged", "delivered"];
 const STORAGE_BUCKET = "item-images";
 
 let inventory = [];
@@ -42,6 +42,7 @@ function getStatusLabel(status) {
     inspection: "Inspection",
     racked: "Racked",
     hold: "Hold",
+    damaged: "Damaged",
     delivered: "Delivered"
   };
   return map[status] || status || "";
@@ -236,6 +237,7 @@ function openRackModal(rackCode) {
 
   const receivedCount = rackItems.filter((item) => item.status === "received").length;
   const rackedCount = rackItems.filter((item) => item.status === "racked").length;
+  const damagedCount = rackItems.filter((item) => item.status === "damaged").length;
   const deliveredCount = rackItems.filter((item) => item.status === "delivered").length;
   const totalQty = rackItems.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
@@ -245,6 +247,7 @@ function openRackModal(rackCode) {
     `Total Qty: ${totalQty}`,
     `Received: ${receivedCount}`,
     `Racked: ${rackedCount}`,
+    `Damaged: ${damagedCount}`,
     `Delivered: ${deliveredCount}`
   ].forEach((text) => {
     const chip = document.createElement("div");
@@ -459,7 +462,7 @@ async function addRow() {
     const { error } = await getDb().from("items").insert(payload);
     if (error) throw error;
 
-    showMessage("New warehouse item created.", "success");
+    showMessage("New item created.", "success");
     await refreshData();
   } catch (error) {
     console.error(error);
@@ -477,7 +480,7 @@ async function updateField(itemId, field, value) {
       payload[field] = value === "" ? null : value;
     }
 
-    if (field === "status" && value === "delivered") {
+    if (field === "status" && (value === "delivered" || value === "damaged")) {
       payload.rack_code = null;
     }
 
@@ -614,8 +617,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const uploadImageBtn = document.getElementById("uploadImageBtn");
   const replaceImageBtn = document.getElementById("replaceImageBtn");
   const detailImageInput = document.getElementById("detailImageInput");
-
-  console.log("window.db =", window.db);
 
   applyLookupFromUrl();
   updateSearchPlaceholder();
