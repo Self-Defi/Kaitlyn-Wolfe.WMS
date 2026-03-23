@@ -86,6 +86,25 @@ function updateCounts() {
   if (rackCount) rackCount.textContent = String(racks.length);
 }
 
+function getUniqueProjectNames() {
+  return [...new Set(
+    inventory
+      .map((item) => String(item.project_name || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+}
+
+function renderProjectDatalist() {
+  const datalist = document.getElementById("projectList");
+  if (!datalist) return;
+
+  const options = getUniqueProjectNames()
+    .map((project) => `<option value="${escapeHtml(project)}"></option>`)
+    .join("");
+
+  datalist.innerHTML = options;
+}
+
 function updateSearchPlaceholder() {
   const input = document.getElementById("searchValue");
   if (!input) return;
@@ -343,6 +362,7 @@ function renderInventory() {
   const filteredInventory = getFilteredInventory();
   updateUiForSearch(filteredInventory);
   updateCounts();
+  renderProjectDatalist();
 
   table.innerHTML = "";
 
@@ -362,9 +382,10 @@ function renderInventory() {
         <div class="project-cell">
           <input
             type="text"
+            list="projectList"
             value="${escapeHtml(row.project_name || "")}"
             onchange="updateField(${row.id}, 'project_name', this.value)"
-            placeholder="Project Name"
+            placeholder="Select or type project"
           />
           <button
             type="button"
