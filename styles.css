@@ -671,24 +671,32 @@ textarea:focus {
 }
 
 .wms-tabs {
-  display: flex;
-  gap: 12px;
+  display: inline-flex;
+  background: #e9dfd3;
+  padding: 4px;
+  border-radius: 14px;
+  gap: 4px;
   margin: 18px 0 22px;
 }
 
 .wms-tab {
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: #fff;
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: 10px;
-  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #5a4636;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wms-tab:hover {
+  background: rgba(122, 79, 42, 0.15);
 }
 
 .wms-tab.active {
-  background: rgba(0, 140, 255, 0.18);
-  border-color: rgba(0, 140, 255, 0.45);
+  background: #7a4f2a;
+  color: #ffffff;
 }
 
 .wms-tab-panel.hidden {
