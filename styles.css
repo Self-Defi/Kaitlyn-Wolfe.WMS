@@ -669,3 +669,106 @@ textarea:focus {
     max-height: calc(100vh - 16px);
   }
 }
+
+.wms-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.wms-tab {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.wms-tab.active {
+  background: rgba(0, 140, 255, 0.18);
+  border-color: rgba(0, 140, 255, 0.45);
+}
+
+.wms-tab-panel.hidden {
+  display: none;
+}
+
+.danger-btn {
+  border-color: rgba(255, 90, 90, 0.4);
+}
+
+.install-input {
+  width: 100%;
+  min-width: 110px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  font: inherit;
+}
+
+.install-delete-btn {
+  white-space: nowrap;
+}
+
+.message.success {
+  border-left: 4px solid #23c55e;
+}
+
+.message.error {
+  border-left: 4px solid #ef4444;
+}
+
+.message.neutral {
+  border-left: 4px solid #64748b;
+}
+
+@media print {
+  .hero,
+  .site-footer,
+  .wms-tabs,
+  #inventoryTab,
+  #installDayAddBtn,
+  #installDaySaveBtn,
+  #installDayClearBtn,
+  #installDayPrintBtn,
+  .install-delete-btn,
+  .search-section,
+  .button-group {
+    display: none !important;
+  }
+
+  #installDayTab {
+    display: block !important;
+  }
+
+  body,
+  main,
+  .container,
+  .table-section,
+  .table-wrap {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    color: #000 !important;
+    border: 1px solid #ccc;
+    padding: 8px;
+  }
+
+  .install-input {
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
+}
