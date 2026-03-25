@@ -1,5 +1,5 @@
 (function () {
-  const STORAGE_KEY = "kw_install_day_pull_list_v2";
+  const STORAGE_KEY = "kw_install_day_pull_list_v3";
 
   const inventoryTabBtn = document.getElementById("inventoryTabBtn");
   const installDayTabBtn = document.getElementById("installDayTabBtn");
@@ -57,10 +57,11 @@
       id: uid(),
       project: "",
       area: "",
-      itemCode: "",
-      itemName: "",
+      category: "",
+      type: "",
+      name: "",
       quantity: 1,
-      rackCode: "",
+      imageData: "",
       pullStatus: "Not Pulled",
       staging: "",
       loaded: false,
@@ -163,7 +164,7 @@
     if (!rows.length) {
       installDayTable.innerHTML = `
         <tr>
-          <td colspan="12" style="text-align:center; opacity:.75; padding: 20px;">
+          <td colspan="13" style="text-align:center; opacity:.75; padding: 20px;">
             No install-day pull rows found.
           </td>
         </tr>
@@ -176,10 +177,25 @@
         <tr data-row-id="${escapeHtml(row.id)}">
           <td><input class="install-input" data-field="project" value="${escapeHtml(row.project)}" placeholder="Project" /></td>
           <td><input class="install-input" data-field="area" value="${escapeHtml(row.area)}" placeholder="Area" /></td>
-          <td><input class="install-input" data-field="itemCode" value="${escapeHtml(row.itemCode)}" placeholder="Item Code" /></td>
-          <td><input class="install-input" data-field="itemName" value="${escapeHtml(row.itemName)}" placeholder="Item Name" /></td>
+          <td><input class="install-input" data-field="category" value="${escapeHtml(row.category)}" placeholder="Category" /></td>
+          <td><input class="install-input" data-field="type" value="${escapeHtml(row.type)}" placeholder="Type" /></td>
+          <td><input class="install-input" data-field="name" value="${escapeHtml(row.name)}" placeholder="Name" /></td>
           <td><input class="install-input" data-field="quantity" type="number" min="1" value="${escapeHtml(row.quantity)}" /></td>
-          <td><input class="install-input" data-field="rackCode" value="${escapeHtml(row.rackCode)}" placeholder="Rack Code" /></td>
+
+          <td>
+            <div class="install-image-cell">
+              ${
+                row.imageData
+                  ? `<img src="${row.imageData}" alt="Install item" class="install-thumb" />`
+                  : `<div class="install-thumb-placeholder">No Image</div>`
+              }
+              <label class="install-upload-btn">
+                Upload
+                <input type="file" accept="image/*" class="install-image-input" data-row-id="${escapeHtml(row.id)}" hidden />
+              </label>
+            </div>
+          </td>
+
           <td>
             <select class="install-input" data-field="pullStatus">
               <option value="Not Pulled" ${row.pullStatus === "Not Pulled" ? "selected" : ""}>Not Pulled</option>
@@ -189,14 +205,19 @@
               <option value="Issue" ${row.pullStatus === "Issue" ? "selected" : ""}>Issue</option>
             </select>
           </td>
+
           <td><input class="install-input" data-field="staging" value="${escapeHtml(row.staging)}" placeholder="Staging Zone" /></td>
+
           <td style="text-align:center;">
             <input data-field="loaded" type="checkbox" ${row.loaded ? "checked" : ""} />
           </td>
+
           <td style="text-align:center;">
             <input data-field="issue" type="checkbox" ${row.issue ? "checked" : ""} />
           </td>
+
           <td><input class="install-input" data-field="notes" value="${escapeHtml(row.notes)}" placeholder="Notes" /></td>
+
           <td>
             <button class="reset-btn install-delete-btn" type="button">Delete</button>
           </td>
@@ -229,6 +250,17 @@
     render();
   }
 
+  function updateRowImage(rowId, imageData) {
+    installRows = installRows.map((row) => {
+      if (row.id !== rowId) return row;
+      return { ...row, imageData };
+    });
+
+    saveRows();
+    render();
+    showMessage("Image uploaded.");
+  }
+
   installDayTable?.addEventListener("input", (event) => {
     const target = event.target;
     const rowEl = target.closest("tr[data-row-id]");
@@ -243,6 +275,18 @@
 
   installDayTable?.addEventListener("change", (event) => {
     const target = event.target;
+
+    if (target.classList.contains("install-image-input")) {
+      const rowId = target.dataset.rowId;
+      const file = target.files?.[0];
+      if (!file || !rowId) return;
+
+      const reader = new FileReader();
+      reader.onload = () => updateRowImage(rowId, reader.result);
+      reader.readAsDataURL(file);
+      return;
+    }
+
     const rowEl = target.closest("tr[data-row-id]");
     if (!rowEl) return;
 
@@ -309,6 +353,7 @@
   });
 
   installProjectFilter?.addEventListener("change", render);
+
   installProjectSearch?.addEventListener("change", () => {
     if (installProjectSearch.value) {
       installProjectFilter.value = installProjectSearch.value;
@@ -317,6 +362,7 @@
     }
     render();
   });
+
   installStatusFilter?.addEventListener("change", render);
 
   render();
